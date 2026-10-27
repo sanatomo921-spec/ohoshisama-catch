@@ -157,7 +157,7 @@
     },
 
     // 1音を鳴らす（やさしく立ち上がって、すっと消える）
-    tone(freq, when, dur, type = 'sine', vol = 1, endFreq = null) {
+    tone(freq, when, dur, type = 'sine', vol = 1, endFreq = null, dest = null) {
       const c = this.ctx;
       const t = c.currentTime + when;
       const osc = c.createOscillator();
@@ -169,7 +169,7 @@
       g.gain.exponentialRampToValueAtTime(vol, t + 0.012);
       g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       osc.connect(g);
-      g.connect(this.master);
+      g.connect(dest || this.master);
       osc.start(t);
       osc.stop(t + dur + 0.05);
     },
@@ -236,6 +236,85 @@
       [[349,0],[440,.36],[392,.66],[494,1.1],[349,1.6],[523,1.9]].forEach(([f,t])=>this.tone(f,t,.3,'triangle',0.17));
     },
     timeup() { this.phrase([698,587,659,784],0.15,'triangle',0.2); },
+  };
+
+  /* ---------------------------------------------------------
+     BGM（プレイ中だけ。本作のために作ったオリジナルの伴奏。既存曲は参照しない）
+     - 星を取ったときの「きらきら星」と同じハ長調で、うしろで小さく鳴る
+     - 音がオフのときは鳴らない。お祝い・時間切れの画面では止まる
+     - のこり10秒になると少しだけ速くなる
+     --------------------------------------------------------- */
+  const BGM_VOLUME = 0.5; // 効果音にくらべた BGM の大きさ（0〜1。効果音より小さく）
+  const CHORDS = {
+    C:  { bass: [131, 98],  tones: [262, 330, 392] },
+    Am: { bass: [110, 82],  tones: [220, 262, 330] },
+    F:  { bass: [87, 131],  tones: [220, 262, 349] },
+    G:  { bass: [98, 147],  tones: [196, 247, 294] },
+    E:  { bass: [82, 123],  tones: [208, 247, 330] },
+  };
+  const SONGS = {
+    // ふつうのステージ：ぽよん、ぽよんと はずむ ゆっくりめの伴奏
+    pop: { bpm: 108, drive: false,
+      bars: ['C', 'Am', 'F', 'G', 'C', 'Am', 'G', 'C'],
+      bells: [null, [659, 784], null, [880, 784], null, [659, 523], null, [784, 1047]] },
+    // おにチャレンジ：速くて元気な伴奏（こわくしない）
+    oni: { bpm: 132, drive: true,
+      bars: ['Am', 'Am', 'F', 'G', 'Am', 'Am', 'F', 'E'],
+      bells: [null, [659, 880], null, [784, 988], null, [659, 880], null, [831, 988]] },
+  };
+  const Bgm = {
+    out: null, song: null, key: '', step: 0, next: 0, lastElapsed: 0,
+    // 毎コマ呼ぶ。0.3秒先までの音を予約する（画面が止まると自然に音も止まる）
+    tick() {
+      const want = state === 'play' && Sound.enabled && Sound.ctx && Sound.ctx.state === 'running';
+      if (!want) { this.stop(); return; }
+      const c = Sound.ctx;
+      // レベルが変わったときや、新しい回が始まったときは はじめから
+      const key = levelKey === 'oni' ? 'oni' : 'pop';
+      if (this.out && (this.key !== key || elapsed < this.lastElapsed)) this.stop();
+      this.lastElapsed = elapsed;
+      if (!this.out) {
+        this.key = key;
+        this.out = c.createGain();
+        this.out.gain.setValueAtTime(0.0001, c.currentTime);
+        this.out.gain.exponentialRampToValueAtTime(BGM_VOLUME, c.currentTime + 0.6);
+        this.out.connect(Sound.master);
+        this.song = SONGS[key];
+        this.step = 0;
+        this.next = c.currentTime + 0.1;
+      }
+      const hurry = elapsed > CONFIG.GAME_TIME - 10 ? 1.12 : 1;
+      const eighth = 60 / (this.song.bpm * hurry) / 2;
+      while (this.next < c.currentTime + 0.3) {
+        this.play(this.step, this.next, eighth);
+        this.step++;
+        this.next += eighth;
+      }
+    },
+    play(step, t, eighth) {
+      const song = this.song, i = step % 8, bar = Math.floor(step / 8) % song.bars.length;
+      const ch = CHORDS[song.bars[bar]], when = t - Sound.ctx.currentTime;
+      const tone = (f, d, type, vol, end) => Sound.tone(f, when, d, type, vol, end || null, this.out);
+      // ベース：ふつうは1拍目と3拍目、おには8分音符で きざむ
+      if (song.drive) { if (i % 2 === 0) tone(ch.bass[0] * (i % 4 === 0 ? 1 : 2), eighth * 1.6, 'triangle', 0.15); }
+      else if (i === 0 || i === 4) tone(ch.bass[i === 0 ? 0 : 1], eighth * 3, 'triangle', 0.22);
+      // 和音：2拍目と4拍目に、ぽんっと やわらかく
+      if (i === 2 || i === 6) ch.tones.forEach(f => tone(f, eighth * 1.4, 'sine', 0.06));
+      // ベル：ときどき「ぷるん」とすべり上がる高い音
+      const bell = song.bells[bar];
+      if (bell && (i === 6 || i === 7)) tone(bell[i - 6], eighth * 1.8, 'triangle', 0.07, bell[i - 6] * 1.02);
+    },
+    stop() {
+      if (!this.out) return;
+      const c = Sound.ctx, g = this.out;
+      this.out = null;
+      try {
+        g.gain.cancelScheduledValues(c.currentTime);
+        g.gain.setValueAtTime(Math.max(0.0001, g.gain.value), c.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.15);
+      } catch (e) { /* なにもしない */ }
+      setTimeout(() => { try { g.disconnect(); } catch (e) { /* なにもしない */ } }, 600);
+    },
   };
 
   /* ---------------------------------------------------------
@@ -1757,6 +1836,7 @@
     // 回転やアドレスバーの出入りで、resize の知らせが来ないまま大きさが変わることがあるので毎回確かめる
     if (app.clientWidth !== W || app.clientHeight !== H) resize();
     update(dt);
+    Bgm.tick();
     render();
     requestAnimationFrame(frame);
   }
@@ -1906,6 +1986,8 @@
         unlockOni() { saveOni('1'); },
         resetOni() { saveOni(''); },
         get vibe() { return { supported: Vibe.supported, enabled: Vibe.enabled, log: Vibe.log }; },
+        get bgm() { return { on: !!Bgm.out, song: Bgm.song && Bgm.song.bpm, step: Bgm.step, audio: Sound.ctx ? Sound.ctx.state : 'none' }; },
+        bgmTick() { Bgm.tick(); },
         get flowerSpot() { return flowerShowSpot(); },
         render,
         get level() { return levelKey; },
