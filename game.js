@@ -304,16 +304,18 @@
       const song = this.song, i = step % 8, bar = Math.floor(step / 8) % song.bars.length;
       const ch = CHORDS[song.bars[bar]], when = t - Sound.ctx.currentTime;
       const tone = (f, d, type, vol, end) => Sound.tone(f, when, d, type, vol, end || null, this.out);
-      // ベース：ふつうは1拍目と3拍目、おには8分音符で きざむ
-      // スマホの小さなスピーカーは低い音が出にくいので、1オクターブ上げて、さらに上の音を少し重ねる
-      const bass = (f, d, v) => { tone(f * 2, d, 'triangle', v * 0.7); tone(f * 4, d * 0.8, 'triangle', v * 0.55); };
-      if (song.drive) { if (i % 2 === 0) bass(ch.bass[0] * (i % 4 === 0 ? 1 : 2), eighth * 1.8, 0.34); }
-      else if (i === 0 || i === 4) bass(ch.bass[i === 0 ? 0 : 1], eighth * 3.5, 0.45);
-      // 和音：2拍目と4拍目に、ぽんっと やわらかく
-      if (i === 2 || i === 6) ch.tones.forEach(f => tone(f < 300 ? f * 2 : f, eighth * 1.9, 'triangle', 0.14));
+      // iPhone などの小さなスピーカーは 500Hz より低い音が ほとんど出ないので、
+      // ベースは2オクターブ上の音を主にして、和音は「アルペジオ」（和音の音を1つずつ）で ずっと鳴らす
+      const bass = (f, d, v) => { tone(f * 2, d, 'triangle', v * 0.45); tone(f * 4, d * 0.9, 'triangle', v); };
+      if (song.drive) { if (i % 2 === 0) bass(ch.bass[0] * (i % 4 === 0 ? 1 : 2), eighth * 1.8, 0.3); }
+      else if (i === 0 || i === 4) bass(ch.bass[i === 0 ? 0 : 1], eighth * 3.5, 0.36);
+      // アルペジオ：8分音符ごとに、和音の音を 下→上→下 と ころころ鳴らす（500〜1000Hz あたり）
+      const ARP = [0, 1, 2, 1, 0, 1, 2, 1];
+      const f = ch.tones[ARP[i]] * 2;
+      tone(f, eighth * 1.7, 'triangle', song.drive ? 0.2 : 0.22);
       // ベル：ときどき「ぷるん」とすべり上がる高い音
       const bell = song.bells[bar];
-      if (bell && (i === 6 || i === 7)) tone(bell[i - 6], eighth * 1.8, 'triangle', 0.2, bell[i - 6] * 1.02);
+      if (bell && (i === 6 || i === 7)) tone(bell[i - 6], eighth * 1.8, 'triangle', 0.24, bell[i - 6] * 1.02);
     },
     stop() {
       if (!this.out) return;
