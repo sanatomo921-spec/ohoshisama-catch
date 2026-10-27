@@ -123,6 +123,11 @@
     clear() { this.buzz([40, 70, 40, 70, 90]); },
   };
 
+  // 全体の音の大きさ（CONFIG.VOLUME にかける数。1 で上限そのまま。1より大きくしないでください）
+  const MASTER_LEVEL = 1;
+  // 星を取ったときの音の大きさ（スマホでもよく聞こえるように大きめ）
+  const CATCH_LEVEL = 0.55;
+
   const Sound = {
     ctx: null,
     master: null,
@@ -138,7 +143,7 @@
         comp.threshold.value = -18;
         comp.ratio.value = 6;
         this.master = this.ctx.createGain();
-        this.master.gain.value = CONFIG.VOLUME * 0.5;
+        this.master.gain.value = CONFIG.VOLUME * MASTER_LEVEL;
         this.master.connect(comp);
         comp.connect(this.ctx.destination);
       }
@@ -151,7 +156,7 @@
       // オフにした瞬間に、予約済みの音もマスターで消音する。
       if (this.master) {
         this.master.gain.cancelScheduledValues(this.ctx.currentTime);
-        this.master.gain.value = on ? CONFIG.VOLUME * 0.5 : 0;
+        this.master.gain.value = on ? CONFIG.VOLUME * MASTER_LEVEL : 0;
       }
       if (on && this.ensure()) this.chime();
     },
@@ -197,21 +202,21 @@
     kiran() {
       const f = this.nextNote();
       if (!this.ready()) return;
-      this.tone(f*.86,0,.2,'sine',.12,f);
-      this.tone(f * 2, 0, 0.16, 'triangle', 0.05);
+      this.tone(f*.86,0,.22,'triangle',CATCH_LEVEL,f);
+      this.tone(f * 2, 0, 0.16, 'triangle', CATCH_LEVEL * 0.35);
     },
     gold() {
       const f = this.nextNote();
       if (!this.ready()) return;
-      this.tone(f*.9,0,.24,'triangle',.13,f);
-      this.tone(f*1.26,.02,.2,'sine',.06);
-      this.tone(f * 2, 0.12, 0.22, 'triangle', 0.06);
+      this.tone(f*.9,0,.26,'triangle',CATCH_LEVEL,f);
+      this.tone(f*1.26,.02,.22,'triangle',CATCH_LEVEL * 0.45);
+      this.tone(f * 2, 0.12, 0.24, 'triangle', CATCH_LEVEL * 0.45);
     },
     shoot() {
       const f = this.nextNote();
       if (!this.ready()) return;
-      this.tone(f*.88,0,.2,'sine',.12,f);
-      this.tone(f * 1.5, 0.06, 0.2, 'triangle', 0.07);
+      this.tone(f*.88,0,.22,'triangle',CATCH_LEVEL,f);
+      this.tone(f * 1.5, 0.06, 0.2, 'triangle', CATCH_LEVEL * 0.5);
     },
     biri() { this.phrase([220,247,220],0.085,'triangle',0.15); },
     // 虹の だんが そろったとき
@@ -244,7 +249,7 @@
      - 音がオフのときは鳴らない。お祝い・時間切れの画面では止まる
      - のこり10秒になると少しだけ速くなる
      --------------------------------------------------------- */
-  const BGM_VOLUME = 0.5; // 効果音にくらべた BGM の大きさ（0〜1。効果音より小さく）
+  const BGM_VOLUME = 1.0; // 効果音にくらべた BGM の大きさ（0〜1。効果音より小さく）
   const CHORDS = {
     C:  { bass: [131, 98],  tones: [262, 330, 392] },
     Am: { bass: [110, 82],  tones: [220, 262, 330] },
@@ -296,13 +301,15 @@
       const ch = CHORDS[song.bars[bar]], when = t - Sound.ctx.currentTime;
       const tone = (f, d, type, vol, end) => Sound.tone(f, when, d, type, vol, end || null, this.out);
       // ベース：ふつうは1拍目と3拍目、おには8分音符で きざむ
-      if (song.drive) { if (i % 2 === 0) tone(ch.bass[0] * (i % 4 === 0 ? 1 : 2), eighth * 1.6, 'triangle', 0.15); }
-      else if (i === 0 || i === 4) tone(ch.bass[i === 0 ? 0 : 1], eighth * 3, 'triangle', 0.22);
+      // スマホの小さなスピーカーは低い音が出にくいので、1オクターブ上げて、さらに上の音を少し重ねる
+      const bass = (f, d, v) => { tone(f * 2, d, 'triangle', v * 0.7); tone(f * 4, d * 0.8, 'triangle', v * 0.55); };
+      if (song.drive) { if (i % 2 === 0) bass(ch.bass[0] * (i % 4 === 0 ? 1 : 2), eighth * 1.6, 0.22); }
+      else if (i === 0 || i === 4) bass(ch.bass[i === 0 ? 0 : 1], eighth * 3, 0.3);
       // 和音：2拍目と4拍目に、ぽんっと やわらかく
-      if (i === 2 || i === 6) ch.tones.forEach(f => tone(f, eighth * 1.4, 'sine', 0.06));
+      if (i === 2 || i === 6) ch.tones.forEach(f => tone(f < 300 ? f * 2 : f, eighth * 1.4, 'triangle', 0.1));
       // ベル：ときどき「ぷるん」とすべり上がる高い音
       const bell = song.bells[bar];
-      if (bell && (i === 6 || i === 7)) tone(bell[i - 6], eighth * 1.8, 'triangle', 0.07, bell[i - 6] * 1.02);
+      if (bell && (i === 6 || i === 7)) tone(bell[i - 6], eighth * 1.8, 'triangle', 0.14, bell[i - 6] * 1.02);
     },
     stop() {
       if (!this.out) return;
@@ -1988,6 +1995,7 @@
         get vibe() { return { supported: Vibe.supported, enabled: Vibe.enabled, log: Vibe.log }; },
         get bgm() { return { on: !!Bgm.out, song: Bgm.song && Bgm.song.bpm, step: Bgm.step, audio: Sound.ctx ? Sound.ctx.state : 'none' }; },
         bgmTick() { Bgm.tick(); },
+        get audio() { return Sound; },
         get flowerSpot() { return flowerShowSpot(); },
         render,
         get level() { return levelKey; },
