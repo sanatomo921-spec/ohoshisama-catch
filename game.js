@@ -123,10 +123,10 @@
     clear() { this.buzz([40, 70, 40, 70, 90]); },
   };
 
-  // 全体の音の大きさ（CONFIG.VOLUME にかける数。1 で上限そのまま。1より大きくしないでください）
-  const MASTER_LEVEL = 1;
-  // 星を取ったときの音の大きさ（スマホでもよく聞こえるように大きめ）
-  const CATCH_LEVEL = 0.55;
+  // 全体の音の大きさ（CONFIG.VOLUME にかける数）。スマホのスピーカーでも聞こえるように、ご依頼で2倍にしている
+  const MASTER_LEVEL = 2;
+  // 星を取ったときの音の大きさ（0〜1。スマホでもよく聞こえるように大きめ）
+  const CATCH_LEVEL = 0.8;
 
   const Sound = {
     ctx: null,
@@ -140,8 +140,9 @@
         this.ctx = new AC();
         // コンプレッサーで音割れ・急な大音量を防ぐ
         const comp = this.ctx.createDynamicsCompressor();
-        comp.threshold.value = -18;
-        comp.ratio.value = 6;
+        // 大きすぎる音だけを おさえる（ふだんの音は そのまま出す）
+        comp.threshold.value = -10;
+        comp.ratio.value = 4;
         this.master = this.ctx.createGain();
         this.master.gain.value = CONFIG.VOLUME * MASTER_LEVEL;
         this.master.connect(comp);
@@ -271,7 +272,10 @@
     out: null, song: null, key: '', step: 0, next: 0, lastElapsed: 0,
     // 毎コマ呼ぶ。0.3秒先までの音を予約する（画面が止まると自然に音も止まる）
     tick() {
-      const want = state === 'play' && Sound.enabled && Sound.ctx && Sound.ctx.state === 'running';
+      const playing = state === 'play' && Sound.enabled && Sound.ctx;
+      // スマホでは音がいったん止まることがあるので、プレイ中は起こしなおす（効果音と同じ）
+      if (playing && Sound.ctx.state !== 'running') { try { Sound.ctx.resume(); } catch (e) { /* なにもしない */ } }
+      const want = playing && Sound.ctx.state === 'running';
       if (!want) { this.stop(); return; }
       const c = Sound.ctx;
       // レベルが変わったときや、新しい回が始まったときは はじめから
@@ -303,13 +307,13 @@
       // ベース：ふつうは1拍目と3拍目、おには8分音符で きざむ
       // スマホの小さなスピーカーは低い音が出にくいので、1オクターブ上げて、さらに上の音を少し重ねる
       const bass = (f, d, v) => { tone(f * 2, d, 'triangle', v * 0.7); tone(f * 4, d * 0.8, 'triangle', v * 0.55); };
-      if (song.drive) { if (i % 2 === 0) bass(ch.bass[0] * (i % 4 === 0 ? 1 : 2), eighth * 1.6, 0.22); }
-      else if (i === 0 || i === 4) bass(ch.bass[i === 0 ? 0 : 1], eighth * 3, 0.3);
+      if (song.drive) { if (i % 2 === 0) bass(ch.bass[0] * (i % 4 === 0 ? 1 : 2), eighth * 1.8, 0.34); }
+      else if (i === 0 || i === 4) bass(ch.bass[i === 0 ? 0 : 1], eighth * 3.5, 0.45);
       // 和音：2拍目と4拍目に、ぽんっと やわらかく
-      if (i === 2 || i === 6) ch.tones.forEach(f => tone(f < 300 ? f * 2 : f, eighth * 1.4, 'triangle', 0.1));
+      if (i === 2 || i === 6) ch.tones.forEach(f => tone(f < 300 ? f * 2 : f, eighth * 1.9, 'triangle', 0.14));
       // ベル：ときどき「ぷるん」とすべり上がる高い音
       const bell = song.bells[bar];
-      if (bell && (i === 6 || i === 7)) tone(bell[i - 6], eighth * 1.8, 'triangle', 0.14, bell[i - 6] * 1.02);
+      if (bell && (i === 6 || i === 7)) tone(bell[i - 6], eighth * 1.8, 'triangle', 0.2, bell[i - 6] * 1.02);
     },
     stop() {
       if (!this.out) return;
