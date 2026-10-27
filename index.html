@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#cfeaff">
+  <meta name="description" content="天使幼稚園75周年記念ミニゲーム「おほしさまキャッチ！」 おちてくる おほしさまを タッチして 75ポイントを めざそう！">
+  <title>おほしさまキャッチ！｜天使幼稚園75周年記念</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="pop.css">
+</head>
+<body>
+  <div id="app">
+    <canvas id="stage" aria-label="おほしさまが おちてくる そら"></canvas>
+
+    <!-- おとボタン（いつでも表示） -->
+    <button id="sound-btn" class="sound-btn" type="button" aria-pressed="false" aria-label="おと オフ（おすと おとが でます）">
+      <svg class="icon-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>
+      <svg class="icon-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>
+      <span class="sound-label">おと オフ</span>
+    </button>
+    <!-- ぶるぶるボタン（ふるえる機能があるスマホだけ。プレイ中はかくす） -->
+    <button id="vibe-btn" class="sound-btn vibe-btn" type="button" aria-pressed="false" aria-label="ぶるぶる オフ（おすと ふるえます）" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="8" height="18" rx="1.5" fill="currentColor"/><path d="M4.5 8v8M2 10v4M19.5 8v8M22 10v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+      <span class="sound-label vibe-label">ぶるぶる オフ</span>
+    </button>
+
+    <!-- プレイ中の表示 -->
+    <div id="hud" class="hud" hidden>
+      <div class="hud-row">
+        <div class="pill score-pill" aria-live="off">
+          <span class="hud-caption">ほし</span>
+          <span id="score" class="score-num">0</span><span class="score-goal">/ 75</span>
+        </div>
+        <div class="pill time-pill" aria-label="のこりじかん">
+          <span class="hud-caption">のこり</span><svg class="time-ring" viewBox="0 0 40 40" aria-hidden="true">
+            <circle cx="20" cy="20" r="16" class="ring-bg"/>
+            <circle cx="20" cy="20" r="16" class="ring-fg" id="time-ring"/>
+          </svg>
+          <span id="time" class="time-num">45</span>
+        </div>
+      </div>
+      <div class="gauge" aria-hidden="true">
+        <div class="gauge-track"><div id="gauge-fill" class="gauge-fill"></div></div>
+        <div class="gauge-goal"><span>★</span><b>75</b></div>
+      </div>
+    </div>
+
+    <!-- スタート画面 -->
+    <section id="title-screen" class="screen title-screen">
+      <div class="angel-slot" data-angel="title"></div>
+      <h1 class="title">
+        <span class="title-line">
+          <span class="c1">お</span><span class="c2">ほ</span><span class="c3">し</span><span class="c4">さ</span><span class="c5">ま</span>
+        </span>
+        <span class="title-line title-line2">
+          <span class="c6">キ</span><span class="c1">ャ</span><span class="c2">ッ</span><span class="c4">チ</span><span class="c5">！</span>
+        </span>
+      </h1>
+      <p class="subtitle">おほしさまを あつめて<br>75しゅうねんを<br class="mobile-break">おいわいしよう！</p>
+      <button id="start-btn" class="btn btn-big" type="button">あそぶ！</button>
+      <p class="howto"><span aria-hidden="true">✦</span> <span class="word">おちてくる おほしさまを</span><br><span class="word">タッチしてね</span></p>
+      <footer class="credit">天使幼稚園 75周年記念</footer>
+    </section>
+
+    <!-- レベルえらび画面 -->
+    <section id="level-screen" class="screen level-screen" hidden>
+      <div class="angel-slot" data-angel="level"></div>
+      <h2 class="level-title">どの ぼうけんに する？</h2>
+      <div class="level-list">
+        <button class="btn level-btn lv-easy" type="button" data-level="easy"><span class="lv-stars" aria-hidden="true">★</span><span class="lv-name">やさしい</span></button>
+        <button class="btn level-btn lv-normal" type="button" data-level="normal"><span class="lv-stars" aria-hidden="true">★★</span><span class="lv-name">ふつう</span></button>
+        <button class="btn level-btn lv-hard" type="button" data-level="hard"><span class="lv-stars" aria-hidden="true">★★★</span><span class="lv-name">むずかしい</span></button>
+        <!-- スペシャルステージ（むずかしいを1回クリアすると あらわれる） -->
+        <button class="btn level-btn lv-oni" type="button" data-level="oni" aria-label="スペシャルステージ おにチャレンジ" hidden><span class="lv-stars" aria-hidden="true"><canvas width="56" height="56"></canvas></span><span class="lv-name">おにチャレンジ</span><span class="lv-new" hidden>あたらしい！</span></button>
+      </div>
+      <p class="level-hint">
+        <canvas id="hint-cloud" width="72" height="56" aria-hidden="true"></canvas>
+        <span><span class="word">かみなりぐもに</span><br class="hint-break"><span class="word">さわらないでね</span></span>
+      </p>
+      <button id="level-back" class="btn-sub" type="button">もどる</button>
+    </section>
+
+    <!-- 75ポイント達成画面 -->
+    <section id="clear-screen" class="screen clear-screen" hidden aria-live="polite">
+      <div class="angel-slot" data-angel="clear"></div>
+      <div class="celebration-art big75" aria-label="75この おほしさまと たからばこ"></div>
+      <p class="clear-msg"><span id="clear-typed" aria-live="off"></span></p>
+      <p class="level-badge"></p>
+      <div class="end-buttons">
+        <button id="retry-clear" class="btn retry" type="button" disabled>もういっかい！</button>
+        <button class="btn-sub retry change-level" type="button" disabled>レベルを かえる</button>
+      </div>
+    </section>
+
+    <!-- おにチャレンジの はじまる前の説明（ここでは時間はへらない） -->
+    <section id="oni-intro-screen" class="screen oni-intro-screen" hidden aria-live="polite">
+      <h2 class="level-title oni-intro-title">おにチャレンジ</h2>
+      <div class="oni-intro-card" role="img" aria-label="ちゃいろ・きんいろ・あかい いんせきを タッチ。75を めざそう">
+        <div class="oni-intro-items" aria-hidden="true">
+          <figure><canvas width="70" height="70" data-meteor="normal"></canvas><figcaption>+1</figcaption></figure>
+          <figure><canvas width="70" height="70" data-meteor="gold"></canvas><figcaption>+5</figcaption></figure>
+          <figure><canvas width="70" height="70" data-meteor="fire"></canvas><figcaption>+3</figcaption></figure>
+        </div>
+        <p class="oni-intro-text" aria-hidden="true">これを タッチ！<br>75を めざそう！</p>
+      </div>
+      <button id="oni-go" class="btn btn-big" type="button">スタート！</button>
+    </section>
+
+    <!-- 時間終了画面 -->
+    <section id="timeup-screen" class="screen timeup-screen" hidden aria-live="polite">
+      <div class="angel-slot" data-angel="timeup"></div>
+      <p class="timeup-score"><span id="timeup-noun">おほしさま</span>を <strong id="final-score">0</strong>こ<br>あつめた！</p>
+      <p class="timeup-msg">おほしさま<br>いっぱい あつめたね！</p>
+      <p class="timeup-sub">また ぼうけんに でかけよう！</p>
+      <p class="level-badge"></p>
+      <div class="end-buttons">
+        <button id="retry-timeup" class="btn retry" type="button">もういっかい！</button>
+        <button class="btn-sub retry change-level" type="button">レベルを かえる</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="game.js"></script>
+  <script src="pop-logo.js"></script>
+</body>
+</html>

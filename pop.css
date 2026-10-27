@@ -1,0 +1,142 @@
+/* ぷるぷるポップ案。既存の画面配置と操作は維持する。 */
+:root{--navy:#51456d;--white:#fff;--font:"Hiragino Maru Gothic ProN","BIZ UDPGothic","Meiryo",sans-serif}
+html,body{background:#e9f6ff;color:#51456d}
+#stage,.logo-canvas,.level-hint canvas,.lv-oni .lv-stars canvas,.oni-intro-items canvas{image-rendering:auto}
+.title .title-line{position:static;clip-path:none;width:auto;height:auto;overflow:visible;white-space:nowrap}
+.title{font-size:clamp(42px,12vw,64px);line-height:1.18;letter-spacing:.015em;filter:drop-shadow(0 5px 0 #c09bc6)}
+.title .title-line span{color:#f684b6;text-shadow:3px 0 white,-3px 0 white,0 3px white,0 -3px white,2px 2px white,-2px -2px white,0 5px #ca83a6;animation:pop-letter .6s cubic-bezier(.2,.9,.3,1.3) both}
+.title .title-line2 span{color:#ffa95d;text-shadow:3px 0 white,-3px 0 white,0 3px white,0 -3px white,2px 2px white,-2px -2px white,0 5px #d78f6f}
+.title-line span:nth-child(2){animation-delay:.06s}.title-line span:nth-child(3){animation-delay:.12s}.title-line span:nth-child(4){animation-delay:.18s}.title-line span:nth-child(5){animation-delay:.24s}
+@keyframes pop-letter{from{opacity:0;transform:translateY(12px) scale(.8)}to{opacity:1;transform:none}}
+#app .title-screen{gap:14px;padding-top:68px;padding-bottom:80px}
+#app .title-screen .angel-slot{width:230px;height:140px}
+.subtitle,.level-title,.level-hint,.clear-msg,.timeup-score,.timeup-msg,.timeup-sub,.level-badge,.oni-intro-card{background:linear-gradient(160deg,#fff,#fff7fe);border:3px solid #fff;color:#51456d;border-radius:26px;box-shadow:0 0 0 2px #d9c8ec,0 7px 0 #d9c8ec66,0 12px 25px #9a7db81a;text-shadow:none}
+.subtitle{font-size:20px;line-height:1.5;padding:12px 14px;width:min(89vw,450px);letter-spacing:0}
+.btn,.btn-big,.btn-sub{border:4px solid #fff;border-radius:28px;background:linear-gradient(175deg,#ffc3dd,#f58ab9 65%,#ec78ab);color:#fff;text-shadow:0 2px 0 #be6393;box-shadow:0 0 0 2px #d682b0,0 7px 0 #cf7ca6,0 12px 20px #a86b9c29,inset 0 3px 0 #ffffffb0;animation:none}
+.btn-big{font-size:30px;min-height:72px;min-width:250px;padding:10px 30px}
+.btn-big::before,.btn:not(.btn-big)::before,.btn-sub::before{color:inherit;animation:none;opacity:.8}
+.btn:active,.btn-big:active,.btn-sub:active{transform:translateY(4px) scale(.98,.96);box-shadow:0 0 0 2px #d682b0,0 3px 0 #cf7ca6,inset 0 3px 7px #c36b9a33}
+.btn-sub{background:linear-gradient(160deg,#fff,#eef3ff);color:#74648c;text-shadow:none;box-shadow:0 0 0 2px #c4b4df,0 5px 0 #c4b4df66;font-size:20px;min-height:48px}
+.btn:focus-visible,.btn-sub:focus-visible,.sound-btn:focus-visible{outline:4px solid #ffca72;outline-offset:5px}
+.howto{font-size:20px;color:#776588;text-shadow:1px 1px #fff;line-height:1.5}
+.credit{border-radius:30px;background:#ffffffbd;color:#7c6b90;font-size:16px;padding:6px 16px;letter-spacing:.06em}
+.sound-btn,.sound-btn[aria-pressed=true]{border-radius:20px;background:linear-gradient(160deg,#fff,#f0f5ff);border:3px solid #fff;box-shadow:0 0 0 2px #c9bddf,0 5px 0 #c9bddf55;color:#9585a8;min-height:48px}
+.sound-btn[aria-pressed=true]{color:#d66d9d;background:linear-gradient(160deg,#fff,#ffe6f2)}
+.playing .sound-btn{width:48px;height:48px;min-width:48px;top:calc(22px + var(--safe-t));border-radius:18px}
+.playing .sound-label{display:none}.playing .hud{padding-right:calc(76px + var(--safe-r))}
+.playing .pill{height:64px;border-radius:23px;border:3px solid #fff;background:linear-gradient(160deg,#fff,#f0f6ff);box-shadow:0 0 0 2px #c9c1e2,0 5px 0 #c9c1e255;color:#51456d;text-shadow:none}
+.score-num{color:#e48b37;font-family:inherit;font-weight:900;font-size:29px}.score-goal{font-family:inherit;color:#9b8aa9;font-size:18px}.time-num{font-family:inherit;font-weight:900;color:#d67da8}.hud-caption{font-size:20px;color:#74648d}.hud-caption.long{font-size:16px}
+.ring-bg{fill:#fff;stroke:#e8e1f3}.ring-fg{stroke:#ba9ae1;stroke-linecap:round}
+.playing .gauge-track{border:3px solid #fff;border-radius:20px;background:#e8e4f3;box-shadow:0 0 0 2px #c9c1e2,inset 0 2px 4px #b3a7c833}.gauge-track::after{display:none}.gauge{height:19px;margin-top:10px}.gauge-fill{border-radius:20px;background:linear-gradient(180deg,#ffcfdf,#f88db7);box-shadow:inset 0 3px 0 #ffffff80}
+.level-btn{border-radius:24px;font-size:26px}.lv-easy{background:linear-gradient(170deg,#bfeeda,#7dcea9);box-shadow:0 0 0 2px #79bb9c,0 7px #79bb9c88}.lv-normal{background:linear-gradient(170deg,#ffdbac,#ffb370);box-shadow:0 0 0 2px #db9c63,0 7px #db9c6388}.lv-hard{background:linear-gradient(170deg,#d9c6ff,#b699ed);box-shadow:0 0 0 2px #9b82c8,0 7px #9b82c888}.level-btn.lv-oni{background:linear-gradient(170deg,#ffc5c5,#ef959c);box-shadow:0 0 0 2px #d47f91,0 7px #d47f9188;border-color:#fff}
+.lv-easy .lv-stars,.lv-normal .lv-stars,.lv-hard .lv-stars,.lv-oni .lv-name{color:#fff;text-shadow:0 2px #00000016}.lv-new{border-radius:20px;background:#fff1a9;color:#ac7152;border-color:#fff}.level-title{font-size:24px}.level-hint{border-radius:22px}.level-badge{color:#74648c}
+.oni-intro-title{color:#d87b8a;border-color:#fff}.oni-intro-card{border-color:#fff}.oni-intro-items figcaption{color:#c47b85;font-family:inherit}.oni-intro-text{font-weight:900}
+@media (orientation:portrait) and (max-height:740px){
+ #app .title-screen{gap:10px;padding-top:64px;padding-bottom:76px}
+ #app .title-screen .angel-slot{height:84px}.title{font-size:40px;line-height:1.1}.subtitle{font-size:18px;padding:10px 12px;line-height:1.5}.btn-big{font-size:28px;min-height:64px}.credit{font-size:14px}#app .howto{display:none}
+}
+@media (orientation:landscape) and (max-height:560px){
+ #app .title-screen{grid-template-columns:160px minmax(280px,390px);grid-template-rows:102px 78px 64px 24px;gap:10px 20px;padding:12px 24px 76px;align-content:center}
+ #app .title-screen .angel-slot{width:160px;height:160px}.title{font-size:44px;line-height:1.1}.subtitle{width:100%;font-size:20px;padding:6px 10px;line-height:1.45}.btn-big{min-height:64px;font-size:28px}
+ .title-line2{margin-top:2px}.subtitle .mobile-break{display:none}.level-title{font-size:22px}
+ /* タイトルは2行にして、右上のおとボタンの下に入らないようにする */
+ #app .title{flex-direction:column;gap:0;align-self:center}
+}
+@media (orientation:landscape) and (max-height:560px) and (max-width:700px){
+ #app .title{font-size:38px}
+}
+@media (min-width:900px) and (min-height:561px){
+ #app .title-screen{display:grid;grid-template-columns:340px 470px;grid-template-rows:152px 104px 80px 30px;gap:18px 42px;align-content:center;justify-content:center;padding:82px 40px 85px}
+ #app .title-screen .angel-slot{grid-column:1;grid-row:1/4;width:340px;height:320px;align-self:center}
+ .title{grid-column:2;grid-row:1;font-size:68px;line-height:1.1}.subtitle{grid-column:2;grid-row:2;width:470px;font-size:22px}.subtitle .mobile-break{display:none}
+ .btn-big{grid-column:2;grid-row:3;justify-self:center;min-height:76px}.credit{grid-column:1/3;grid-row:4;justify-self:center;margin:0}#app .howto{display:none}
+}
+@media (orientation:landscape) and (max-width:700px){
+ #app .title-screen{grid-template-columns:120px minmax(260px,340px);gap:8px 16px}.title{font-size:40px}#app .title-screen .angel-slot{width:120px;height:150px}
+}
+@media(prefers-reduced-motion:reduce){.title .title-line span{animation:none!important;transform:none!important;opacity:1!important}}
+html.reduced .title .title-line span{animation:none!important;transform:none!important;opacity:1!important}
+/* 数字とラベルを2段に分け、いんせきの4文字でも収める。 */
+.playing .score-pill{display:grid;grid-template-columns:1fr auto;grid-template-rows:19px 30px;column-gap:4px;row-gap:0;align-items:center;justify-items:center;padding:4px 10px;max-width:240px}
+.score-pill .hud-caption{grid-column:1 / -1;font-size:17px;line-height:19px}
+.score-pill .score-num{font-size:29px;line-height:30px;min-width:0;text-align:center}
+.score-pill .score-goal{font-size:17px;line-height:30px}
+.playing .time-pill{display:grid;grid-template-columns:20px auto;grid-template-rows:19px 28px;gap:0 5px;justify-content:center;align-items:center;padding:5px 10px;min-width:104px}
+.time-pill .hud-caption{grid-column:1 / -1;font-size:17px;line-height:19px;text-align:center}
+.time-pill .time-num{font-size:26px;line-height:28px}
+
+/* 最終の画面配置。最低タップサイズと右下196×63pxを予約する。 */
+#app .level-screen{gap:16px;padding-top:68px;padding-bottom:82px}
+#app .level-screen .angel-slot{height:80px}
+#app .level-list{gap:14px;width:min(86vw,430px)}
+#app .level-btn{min-height:68px;padding:10px 20px;font-size:24px}
+#app .lv-stars{min-width:76px}
+#app .level-title{padding:10px 16px;font-size:24px;line-height:1.4}
+#app .level-screen.oni-open .level-title{margin-bottom:4px}
+#app .level-hint{font-size:20px;line-height:1.4}
+.clear-msg,.timeup-score,.timeup-msg,.timeup-sub{color:#67547a}
+.timeup-score strong{color:#e5a34e;font-family:inherit;font-weight:900}
+.change-level.to-oni{color:#b96c86;border-color:#fff;background:linear-gradient(160deg,#fff9fb,#ffe6ef)}
+.level-badge.oni-new{color:#a56d86;border-color:#fff;font-size:18px;line-height:1.4}
+#app .end-buttons .btn{min-height:64px}
+#app .end-buttons .btn-sub{min-height:48px}
+#app .clear-screen,#app .timeup-screen{gap:12px;padding-top:66px;padding-bottom:84px}
+#app .clear-screen .angel-slot{height:75px}
+#app .clear-screen .celebration-art{height:190px;width:min(86vw,360px)}
+#app .clear-msg{font-size:20px;line-height:1.5;min-height:120px;width:min(89vw,450px);padding:12px}
+#app .timeup-screen .angel-slot{height:135px}
+#app .timeup-score{font-size:22px;padding:8px 14px;line-height:1.45}
+#app .timeup-msg{font-size:22px;padding:10px 14px;line-height:1.4}
+#app .timeup-sub{font-size:20px;padding:8px 12px}
+.retry{visibility:hidden}.show-btn .retry{visibility:visible}
+@media (orientation:portrait) and (max-height:740px){
+ #app .level-screen{gap:12px;padding-top:66px;padding-bottom:76px}
+ #app .level-screen .angel-slot{display:none}
+ #app .level-list{gap:12px}#app .level-btn{min-height:64px}
+ #app .clear-screen,#app .timeup-screen{gap:10px;padding-top:62px;padding-bottom:78px}
+ #app .clear-screen .angel-slot{height:46px}#app .clear-screen .celebration-art{height:145px}
+ #app .clear-msg{font-size:20px;line-height:1.35;min-height:110px;padding:10px}
+ #app .clear-screen .level-badge,#app .timeup-screen .level-badge{display:none}
+ #app .end-buttons{gap:10px}#app .timeup-screen .angel-slot{height:88px}
+ #app .timeup-msg{font-size:20px}#app .timeup-sub{font-size:20px}
+}
+@media (min-width:900px) and (min-height:561px){
+ #app .clear-screen{gap:10px;padding-top:64px;padding-bottom:82px}
+ #app .clear-screen .angel-slot{height:64px}#app .clear-screen .celebration-art{height:190px}
+ #app .end-buttons{flex-direction:row;gap:14px}
+}
+@media (orientation:landscape) and (max-height:560px){
+ #app .level-screen{gap:12px;padding-top:66px;padding-bottom:76px}
+ #app .level-screen .angel-slot{display:none}
+ #app .level-list{flex-direction:row;width:min(94vw,800px);gap:12px}
+ #app .level-btn{min-height:72px;padding:8px;font-size:21px;line-height:1.3;flex:1;gap:3px}
+ #app .level-title{font-size:22px;padding:7px 14px}
+ #app .level-hint{font-size:20px;padding:4px 12px}
+ #app .level-hint .hint-break{display:none}
+ #app .lv-oni .lv-stars{min-width:0}#app .lv-oni .lv-name{font-size:18px}
+ #app .clear-screen,#app .timeup-screen{display:grid;grid-template-columns:190px minmax(290px,440px);grid-template-rows:45px 90px 64px;gap:10px 20px;padding:65px 20px 76px;align-content:center;justify-content:center}
+ #app .clear-screen .angel-slot{grid-column:1;grid-row:1;width:140px;height:55px}
+ #app .clear-screen .celebration-art{grid-column:1;grid-row:2/4;width:190px;height:145px}
+ #app .clear-msg{grid-column:2;grid-row:1/3;width:100%;font-size:20px;line-height:1.4;min-height:108px;padding:10px;align-self:center}
+ #app .clear-screen .level-badge,#app .timeup-screen .level-badge{display:none}
+ #app .end-buttons{grid-column:2;grid-row:3;display:flex;flex-direction:row;gap:8px;margin:0;align-self:center;align-items:center}
+ #app .end-buttons .btn,#app .end-buttons .btn-sub{flex:1;min-width:0;width:auto;font-size:18px;line-height:1.25;white-space:normal;padding:6px}
+ #app .end-buttons .btn{min-height:64px}#app .end-buttons .btn-sub{min-height:48px}
+ #app .end-buttons .btn::before,#app .end-buttons .btn-sub::before{margin-right:5px}
+ #app .timeup-screen .angel-slot{grid-column:1;grid-row:1/3;height:110px;width:160px}
+ #app .timeup-score{grid-column:2;grid-row:1;min-width:0;font-size:20px;line-height:1.3;padding:4px 10px}
+ #app .timeup-score br{display:none}#app .timeup-score strong{font-size:26px}
+ #app .timeup-msg{grid-column:2;grid-row:2;font-size:20px;line-height:1.35;padding:6px 10px;align-self:center;display:block}
+ #app .timeup-sub{grid-column:1;grid-row:3;font-size:18px;line-height:1.3;padding:6px}
+ #app .oni-intro-screen{gap:12px;padding-top:64px;padding-bottom:78px}
+ #app .oni-intro-card{flex-direction:row;padding:10px 15px;gap:15px}
+ #app .oni-intro-title{font-size:22px;padding:6px 14px}
+ #app .oni-intro-items canvas{width:48px;height:48px}
+}
+@media (orientation:landscape) and (max-width:700px){
+ #app .clear-screen,#app .timeup-screen{grid-template-columns:150px minmax(290px,390px);gap:8px 15px;padding-left:15px;padding-right:15px}
+ #app .clear-screen .celebration-art{width:150px;height:140px}
+ #app .timeup-screen .angel-slot{width:140px}
+}
+@media(prefers-reduced-motion:reduce){.title-line span,.btn,.btn-sub,.retry{animation:none!important;transition:none!important;transform:none!important}}
+html.reduced .title-line span,html.reduced .btn,html.reduced .btn-sub,html.reduced .retry{animation:none!important;transition:none!important;transform:none!important}
